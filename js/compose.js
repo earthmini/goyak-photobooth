@@ -1,37 +1,34 @@
-/** 1080×1920 (9:16) 합성 + 하단 문구/QR 영역 */
+/**
+ * 프린터 가이드 규격
+ * 캔버스 1080×1620
+ * 사진 칸 466×690 @ (63,77) (552,77) (63,789) (552,789)
+ * 하단 문구 CAPTION 1080×104 (y=1516)
+ */
 const Compose = (() => {
   const W = 1080;
-  const H = 1920;
+  const H = 1620;
   const SLOT_W = 466;
   const SLOT_H = 690;
-  const FOOTER_Y = 1479;
-
-  // 사진 칸 4개 (픽셀 좌표) — 466×690, 하단 문구 영역 위(y < 1479)
-  const GAP_BETWEEN_X = 40;
-  const SIDE_X = Math.floor((W - SLOT_W * 2 - GAP_BETWEEN_X) / 2); // 54
-  const TOP_Y = 50;
-  const GAP_Y = 40;
-  const X2 = SIDE_X + SLOT_W + GAP_BETWEEN_X;
-  const Y2 = TOP_Y + SLOT_H + GAP_Y;
+  const CAPTION_H = 104;
+  const CAPTION_Y = H - CAPTION_H; // 1516
 
   const SLOTS = [
-    { x: SIDE_X, y: TOP_Y, w: SLOT_W, h: SLOT_H },
-    { x: X2, y: TOP_Y, w: SLOT_W, h: SLOT_H },
-    { x: SIDE_X, y: Y2, w: SLOT_W, h: SLOT_H },
-    { x: X2, y: Y2, w: SLOT_W, h: SLOT_H },
+    { x: 63, y: 77, w: SLOT_W, h: SLOT_H },
+    { x: 552, y: 77, w: SLOT_W, h: SLOT_H },
+    { x: 63, y: 789, w: SLOT_W, h: SLOT_H },
+    { x: 552, y: 789, w: SLOT_W, h: SLOT_H },
   ];
 
-  // 하단 문구 영역 y 1479~1920 안에 QR 배치
-  const QR_SIZE = 168;
-  const QR_PAD = 36;
-  const QR_X = W - QR_PAD - QR_SIZE;
-  const QR_Y = FOOTER_Y + Math.floor(((H - FOOTER_Y) - QR_SIZE) / 2);
+  // 하단 캡션(104px) 안에 들어가는 QR
+  const QR_SIZE = 80;
+  const QR_X = W - 27 - QR_SIZE;
+  const QR_Y = CAPTION_Y + Math.floor((CAPTION_H - QR_SIZE) / 2);
 
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onerror = () => reject(new Error("이미지 로드 실패"));
       img.src = src;
     });
   }
@@ -54,7 +51,10 @@ const Compose = (() => {
   function drawCover(ctx, img, x, y, w, h) {
     const ir = img.width / img.height;
     const tr = w / h;
-    let sx, sy, sw, sh;
+    let sx;
+    let sy;
+    let sw;
+    let sh;
     if (ir > tr) {
       sh = img.height;
       sw = img.height * tr;
@@ -76,56 +76,62 @@ const Compose = (() => {
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, W, H);
 
-    // 슬롯 사이 간격 채우기 (이미 배경색)
-    // 하단 문구 영역
-    ctx.fillRect(0, FOOTER_Y, W, H - FOOTER_Y);
-
     ctx.fillStyle = textColor;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    const textX = 48;
-    const textCY = FOOTER_Y + (H - FOOTER_Y) / 2 - 10;
-    ctx.font = '600 52px "Cormorant Garamond", "Noto Sans KR", serif';
-    ctx.fillText("고약네컷", textX, textCY - 18);
-    ctx.font = '400 24px "Noto Sans KR", sans-serif';
-    ctx.globalAlpha = 0.8;
-    ctx.fillText("제5회 고약인의 밤", textX, textCY + 28);
+    const textX = 40;
+    const textCY = CAPTION_Y + CAPTION_H / 2;
+    ctx.font = '600 40px "Cormorant Garamond", "Noto Sans KR", serif';
+    ctx.fillText("고약네컷", textX, textCY - 12);
+    ctx.font = '400 18px "Noto Sans KR", sans-serif';
+    ctx.globalAlpha = 0.85;
+    ctx.fillText("제5회 고약인의 밤", textX, textCY + 18);
     ctx.globalAlpha = 1;
   }
 
-  async function makeQRDataUrl(text, size = 200) {
-    if (typeof QRCode === "undefined") {
-      throw new Error("QRCode 라이브러리를 불러오지 못했습니다.");
+  async function makeQRDataUrl(text, size = 160) {
+    // qrcodejs (davidshimjs)
+    if (typeof QRCode !== "undefined") {
+      const host = document.createElement("div");
+      host.style.cssText = "position:fixed;left:-9999px;top:0;";
+      document.body.appendChild(host);
+      try {
+        // eslint-disable-next-line no-new
+        new QRCode(host, {
+          text: String(text),
+          width: size,
+          height: size,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+        await new Promise((r) => setTimeout(r, 30));
+        const canvas = host.querySelector("canvas");
+        const img = host.querySelector("img");
+        if (canvas) return canvas.toDataURL("image/png");
+        if (img && img.src) return img.src;
+      } finally {
+        host.remove();
+      }
     }
-    return QRCode.toDataURL(text, {
-      width: size,
-      margin: 1,
-      color: { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    });
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=8&data=${encodeURIComponent(text)}`;
   }
 
   async function drawQR(ctx, downloadUrl) {
-    if (!downloadUrl) return;
-    const qrUrl = await makeQRDataUrl(downloadUrl, 220);
-    const qr = await loadImage(qrUrl);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(QR_X - 10, QR_Y - 10, QR_SIZE + 20, QR_SIZE + 20);
-    ctx.drawImage(qr, QR_X, QR_Y, QR_SIZE, QR_SIZE);
-
-    ctx.fillStyle = "#333333";
-    ctx.font = '500 16px "Noto Sans KR", sans-serif';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillText("SCAN", QR_X + QR_SIZE / 2, QR_Y + QR_SIZE + 4);
+    if (!downloadUrl) return false;
+    try {
+      const qrUrl = await makeQRDataUrl(downloadUrl, 160);
+      const qr = await loadImage(qrUrl);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(QR_X - 4, QR_Y - 4, QR_SIZE + 8, QR_SIZE + 8);
+      ctx.drawImage(qr, QR_X, QR_Y, QR_SIZE, QR_SIZE);
+      return true;
+    } catch (e) {
+      console.warn("QR 그리기 실패", e);
+      return false;
+    }
   }
 
-  /**
-   * @param {string[]} photoDataUrls
-   * @param {{type:string, src?:string}} frame
-   * @param {string|null} downloadUrl
-   */
   async function compose(photoDataUrls, frame, downloadUrl) {
     const canvas = document.createElement("canvas");
     canvas.width = W;
@@ -156,10 +162,9 @@ const Compose = (() => {
       ctx.drawImage(customImg, 0, 0, W, H);
     }
 
-    // 하단 영역에 QR 항상 할당·표시
     await drawQR(ctx, downloadUrl);
 
-    return canvas.toDataURL("image/jpeg", 0.95);
+    return canvas.toDataURL("image/jpeg", 0.92);
   }
 
   return {
@@ -170,7 +175,8 @@ const Compose = (() => {
     SLOTS,
     SLOT_W,
     SLOT_H,
-    FOOTER_Y,
+    CAPTION_Y,
+    CAPTION_H,
     QR_SIZE,
     QR_X,
     QR_Y,

@@ -309,7 +309,7 @@ body {
 .select-frame-preview {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
   background: #111;
   border-radius: 12px;
   overflow: hidden;
@@ -416,7 +416,7 @@ body {
 }
 
 .frame-card {
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
   border-radius: 12px;
   border: 2px solid transparent;
   background: var(--bg-elevated);
@@ -472,8 +472,8 @@ body {
 
 .camera-viewport {
   position: relative;
-  width: min(92vw, 72vh * 9 / 16);
-  aspect-ratio: 9 / 16;
+  width: min(92vw, 70vh * 2 / 3);
+  aspect-ratio: 2 / 3;
   border-radius: 16px;
   overflow: hidden;
   background: #000;
@@ -596,7 +596,7 @@ body {
 
 .thumb {
   position: relative;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -639,7 +639,7 @@ body {
 #compose-preview,
 #print-preview {
   width: min(42vh, 100%);
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
   object-fit: contain;
   background: #111;
   border-radius: 12px;
@@ -757,7 +757,7 @@ body {
   }
 
   .camera-viewport {
-    width: min(88vw, 58vh * 9 / 16);
+    width: min(88vw, 58vh * 2 / 3);
   }
 }
 
@@ -822,7 +822,7 @@ body {
 }
 
 .camera-viewport {
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
 }
 
 /* —— Compose side QR —— */
@@ -841,7 +841,7 @@ body {
 #compose-preview,
 #print-preview,
 .select-frame-preview {
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 2 / 3;
 }
 
 .select-frame-preview {
@@ -881,4 +881,163 @@ body {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+
+/* —— Guide frame 1080×1620 (첨부 가이드 좌표) —— */
+.guide-frame {
+  position: relative;
+  width: min(42vh, 100%);
+  aspect-ratio: 1080 / 1620;
+  background: #f7f4ec;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+
+.guide-frame.theme-black { background: #0a0a0a; }
+.guide-frame.theme-white { background: #f7f4ec; }
+
+.guide-safe {
+  position: absolute;
+  top: calc(100% * 46 / 1620);
+  left: calc(100% * 27 / 1080);
+  right: calc(100% * 27 / 1080);
+  bottom: calc(100% * 37 / 1620);
+  border: 1px dashed rgba(220, 60, 60, 0.55);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 슬롯: (63,77) (552,77) (63,789) (552,789) / 466×690 */
+.guide-slot {
+  position: absolute;
+  width: calc(100% * 466 / 1080);
+  height: calc(100% * 690 / 1620);
+  background: #1a1a1a;
+  border: 1px solid rgba(160, 100, 200, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.guide-slot[data-n="1"],
+.guide-slot[data-slot="0"] { left: calc(100% * 63 / 1080); top: calc(100% * 77 / 1620); }
+.guide-slot[data-n="2"],
+.guide-slot[data-slot="1"] { left: calc(100% * 552 / 1080); top: calc(100% * 77 / 1620); }
+.guide-slot[data-n="3"],
+.guide-slot[data-slot="2"] { left: calc(100% * 63 / 1080); top: calc(100% * 789 / 1620); }
+.guide-slot[data-n="4"],
+.guide-slot[data-slot="3"] { left: calc(100% * 552 / 1080); top: calc(100% * 789 / 1620); }
+
+.guide-slot > span {
+  color: rgba(255,255,255,0.45);
+  font-family: var(--font-display);
+  font-size: clamp(22px, 4vh, 36px);
+  z-index: 1;
+}
+
+.guide-slot img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  z-index: 2;
+}
+
+.guide-slot.has-photo > span { display: none; }
+.guide-slot.has-photo img { display: block; }
+
+/* 하단 문구 CAPTION 1080×104 @ y=1516 */
+.guide-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% * 1516 / 1620);
+  height: calc(100% * 104 / 1620);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 4% 0 4%;
+  z-index: 2;
+  border-top: 1px dashed rgba(201, 162, 39, 0.45);
+  box-sizing: border-box;
+}
+
+.guide-caption-title {
+  font-family: var(--font-display);
+  font-size: clamp(14px, 2.2vh, 20px);
+  letter-spacing: 0.12em;
+  color: #2a2418;
+}
+.theme-black .guide-caption-title,
+.theme-black .guide-caption-sub { color: #f0e6c8; }
+
+.guide-caption-sub {
+  font-size: clamp(10px, 1.4vh, 13px);
+  color: #5a5040;
+  margin-top: 2px;
+}
+
+.guide-frame .frame-chrome {
+  z-index: 4;
+}
+
+/* 카메라 뷰포트 = 사진 칸 비율 466:690 */
+.camera-viewport {
+  width: min(92vw, 72vh * 466 / 690) !important;
+  aspect-ratio: 466 / 690 !important;
+}
+
+.capture-result {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+#capture-video {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+
+#compose-preview,
+#print-preview {
+  aspect-ratio: 1080 / 1620 !important;
+  width: min(48vh, 100%);
+  background: #111;
+}
+
+/* select preview no longer uses old grid padding */
+.select-frame-preview.guide-frame {
+  display: block;
+  padding: 0;
+  grid-template-columns: unset;
+  grid-template-rows: unset;
+  gap: unset;
+}
+
+.frame-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 24px;
+  min-height: 0;
+  align-items: center;
+}
+
+@media (max-width: 900px), (orientation: portrait) {
+  .frame-layout {
+    grid-template-columns: 1fr;
+  }
+  .guide-frame {
+    width: min(46vw, 40vh);
+  }
 }

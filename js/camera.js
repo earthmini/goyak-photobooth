@@ -1,9 +1,12 @@
-/** 웹캠 제어 — 화면·저장 비율 9:16, 슬롯 466×690 맞춤 */
+/** 웹캠 제어 — 저장 비율 = 사진 칸 466×690 (늘림 없이 크롭) */
 const Camera = (() => {
   let stream = null;
-  const ASPECT = 9 / 16; // width / height
-  const OUT_W = 466 * 2; // 고해상도 캡처 (슬롯 비율 유지)
-  const OUT_H = 690 * 2;
+  // 슬롯과 동일한 비율이어야 촬영 후 옆으로 늘어나지 않음
+  const SLOT_W = 466;
+  const SLOT_H = 690;
+  const ASPECT = SLOT_W / SLOT_H; // ≈ 0.6754 (2:3)
+  const OUT_W = SLOT_W * 2;
+  const OUT_H = SLOT_H * 2;
 
   async function start(videoEl) {
     if (stream) {
@@ -11,22 +14,20 @@ const Camera = (() => {
       return stream;
     }
 
-    const constraints = {
-      audio: false,
-      video: {
-        facingMode: "user",
-        width: { ideal: 1080 },
-        height: { ideal: 1920 },
-        aspectRatio: { ideal: ASPECT },
-      },
-    };
-
     try {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 1920 },
+          aspectRatio: { ideal: ASPECT },
+        },
+      });
     } catch (e) {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1920 } },
+        video: { facingMode: "user" },
       });
     }
 
@@ -47,22 +48,27 @@ const Camera = (() => {
   }
 
   /**
-   * 미리보기와 동일한 9:16 비율로 크롭 캡처.
-   * mirror=true면 거울 모드(좌우 반전)로 저장.
+   * 미리보기·저장 모두 466:690 비율로 중앙 크롭.
+   * mirror=true면 거울 모드로 저장.
    */
   function capture(videoEl, canvasEl, { mirror = true } = {}) {
     const vw = videoEl.videoWidth;
     const vh = videoEl.videoHeight;
     if (!vw || !vh) throw new Error("카메라가 준비되지 않았습니다.");
 
-    let sx, sy, sw, sh;
+    let sx;
+    let sy;
+    let sw;
+    let sh;
     const videoAspect = vw / vh;
     if (videoAspect > ASPECT) {
+      // 영상이 더 넓음 → 좌우 크롭 (세로 맞춤)
       sh = vh;
       sw = vh * ASPECT;
       sx = (vw - sw) / 2;
       sy = 0;
     } else {
+      // 영상이 더 높음 → 상하 크롭 (가로 맞춤)
       sw = vw;
       sh = vw / ASPECT;
       sx = 0;
@@ -84,5 +90,5 @@ const Camera = (() => {
     return canvasEl.toDataURL("image/jpeg", 0.92);
   }
 
-  return { start, attach, stop, capture, ASPECT, OUT_W, OUT_H };
+  return { start, attach, stop, capture, ASPECT, OUT_W, OUT_H, SLOT_W, SLOT_H };
 })();

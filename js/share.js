@@ -1,4 +1,4 @@
-/** 서버 없이 사진 저장·다운로드 URL 생성 (IndexedDB + 선택적 임시 업로드) */
+/** 서버 없이 사진 저장·다운로드 URL 생성 */
 const PhotoShare = (() => {
   const DB_NAME = "goyak-necut";
   const STORE = "photos";
@@ -60,6 +60,22 @@ const PhotoShare = (() => {
     return new Blob([arr], { type: mime });
   }
 
+  function withTimeout(promise, ms) {
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error("timeout")), ms);
+      promise.then(
+        (v) => {
+          clearTimeout(t);
+          resolve(v);
+        },
+        (e) => {
+          clearTimeout(t);
+          reject(e);
+        }
+      );
+    });
+  }
+
   async function uploadTemp(dataUrl) {
     const blob = dataUrlToBlob(dataUrl);
     const form = new FormData();
@@ -77,24 +93,21 @@ const PhotoShare = (() => {
     return text;
   }
 
-  /**
-   * QR에 넣을 URL 확보 후 최종 이미지 저장
-   * - 항상 로컬 IndexedDB 뷰어 URL 확보
-   * - 네트워크 되면 24h 공개 임시 URL 사용 (다른 폰에서 스캔 가능)
-   */
+  /** 로컬 URL 즉시 반환, 원격 업로드는 최대 4초만 시도 */
   async function publishForQr(draftDataUrl) {
     const id = uid();
+    await saveLocal(draftDataUrl, id);
     let url = localViewUrl(id);
     let remote = false;
 
     try {
-      url = await uploadTemp(draftDataUrl);
+      url = await withTimeout(uploadTemp(draftDataUrl), 4000);
       remote = true;
     } catch (e) {
-      console.warn("공개 임시 업로드 불가 → 로컬 뷰어 URL 사용", e);
+      console.warn("공개 업로드 생략 → 로컬 URL", e);
+      url = localViewUrl(id);
     }
 
-    await saveLocal(draftDataUrl, id);
     return { id, url, remote };
   }
 

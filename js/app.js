@@ -86,9 +86,8 @@
     const keep = el.id === "select-chrome" ? " select-chrome" : "";
     el.className = "frame-chrome" + keep;
     el.style.backgroundImage = "";
-    if (frame.type === "white") el.classList.add("white-frame");
-    else if (frame.type === "black") el.classList.add("black-frame");
-    else if (frame.type === "custom") {
+    // 가이드 레이아웃은 테마 배경으로 처리, 커스텀만 오버레이
+    if (frame.type === "custom" && frame.src) {
       el.classList.add("custom-frame");
       el.style.backgroundImage = `url(${frame.src})`;
     }
@@ -114,7 +113,14 @@
   function selectFrame(frame) {
     state.frame = frame;
     renderFrameGrid();
+    applyChrome($("#preview-chrome"), frame);
     applyChrome($("#select-chrome"), frame);
+    const guide = $("#guide-frame");
+    if (guide) {
+      guide.classList.toggle("theme-black", frame.type === "black");
+      guide.classList.toggle("theme-white", frame.type === "white");
+      guide.classList.toggle("theme-custom", frame.type === "custom");
+    }
     $("#btn-frame-next").disabled = false;
   }
 
@@ -257,23 +263,37 @@
 
   async function renderQrTo(canvas, url) {
     if (!canvas) return;
-    if (url && typeof QRCode !== "undefined") {
-      await QRCode.toCanvas(canvas, url, {
-        width: 180,
-        margin: 1,
-        color: { dark: "#000000", light: "#ffffff" },
-      });
-      return;
-    }
     const ctx = canvas.getContext("2d");
     canvas.width = 180;
     canvas.height = 180;
-    ctx.fillStyle = "#eee";
+    ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, 180, 180);
-    ctx.fillStyle = "#333";
-    ctx.font = "12px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("QR 준비 중", 90, 90);
+
+    if (!url) {
+      ctx.fillStyle = "#888";
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("QR 준비 중", 90, 95);
+      return;
+    }
+
+    try {
+      const dataUrl = await Compose.makeQRDataUrl(url, 180);
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = reject;
+        i.crossOrigin = "anonymous";
+        i.src = dataUrl;
+      });
+      ctx.drawImage(img, 0, 0, 180, 180);
+    } catch (e) {
+      console.warn(e);
+      ctx.fillStyle = "#333";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("QR 생성 실패", 90, 95);
+    }
   }
 
   // —— Compose ——
@@ -287,26 +307,38 @@
     const selectedUrls = state.selected.map((i) => state.photos[i]);
 
     try {
-      $("#compose-status").textContent = "다운로드 링크(QR)를 준비하는 중…";
+      // 1) QR 없이 먼저 합성 → 미리보기 즉시 표시
       const draft = await Compose.compose(selectedUrls, state.frame, null);
+      state.compositeDataUrl = draft;
+      $("#compose-preview").src = draft;
+      $("#compose-status").textContent = "QR 링크를 준비하는 중…";
+
+      // 2) 다운로드 URL (로컬 즉시, 원격은 짧은 타임아웃)
       const published = await PhotoShare.publishForQr(draft);
       state.downloadUrl = published.url;
+      await renderQrTo($("#compose-qr-canvas"), state.downloadUrl);
 
-      $("#compose-status").textContent = "하단 영역에 QR을 넣어 합성 중…";
+      // 3) QR 포함 최종 합성 후 미리보기 갱신
+      $("#compose-status").textContent = "QR을 넣어 최종 합성 중…";
       const finalImage = await Compose.compose(selectedUrls, state.frame, published.url);
       await PhotoShare.saveLocal(finalImage, published.id);
-
       state.compositeDataUrl = finalImage;
       $("#compose-preview").src = finalImage;
-      await renderQrTo($("#compose-qr-canvas"), state.downloadUrl);
+
       $("#compose-status").textContent = published.remote
         ? "합성이 완료되었습니다. QR을 스캔해 다운로드하세요."
-        : "합성이 완료되었습니다. (로컬 QR — 촬영 기기에서 열림)";
+        : "합성이 완료되었습니다. QR은 촬영 기기에서 열립니다.";
       $("#btn-compose-next").disabled = false;
     } catch (err) {
       console.error(err);
-      $("#compose-status").textContent = "합성 실패: " + (err.message || err);
-      alert("합성에 실패했습니다.");
+      if (state.compositeDataUrl) {
+        $("#compose-preview").src = state.compositeDataUrl;
+        $("#compose-status").textContent = "미리보기는 준비됨 (QR 일부 실패 가능)";
+        $("#btn-compose-next").disabled = false;
+      } else {
+        $("#compose-status").textContent = "합성 실패: " + (err.message || err);
+        alert("합성에 실패했습니다.");
+      }
     }
   }
 
