@@ -789,29 +789,6 @@ body {
   gap: 20px;
 }
 
-.sms-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: min(280px, 100%);
-}
-
-.sms-input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--bg-elevated);
-  color: var(--ink);
-  font-size: 16px;
-  font-family: var(--font-body);
-  outline: none;
-}
-
-.sms-input::placeholder {
-  color: var(--muted);
-}
-
 .compose-layout {
   grid-template-columns: 1.1fr 0.9fr;
 }

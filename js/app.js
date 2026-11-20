@@ -53,15 +53,6 @@
     return true;
   }
 
-  function sendSms() {
-    if (!state.downloadUrl) {
-      alert("다운로드 링크가 아직 준비되지 않았습니다.");
-      return;
-    }
-    const phone = ($("#sms-phone") && $("#sms-phone").value) || "";
-    PhotoShare.openSmsWithLink(state.downloadUrl, phone);
-  }
-
   // —— Frames ——
   function defaultFrames() {
     return [
@@ -324,12 +315,13 @@
       $("#compose-preview").src = draft;
       $("#compose-status").textContent = "QR 링크를 준비하는 중…";
 
-      // 2) 다운로드 URL (로컬 즉시, 원격은 짧은 타임아웃)
+      // 2) 공개 이미지 URL 업로드 (다른 폰 QR용)
+      $("#compose-status").textContent = "다운로드용 사진을 업로드하는 중…";
       const published = await PhotoShare.publishForQr(draft);
       state.downloadUrl = published.url;
       await renderQrTo($("#compose-qr-canvas"), state.downloadUrl);
 
-      // 3) QR 포함 최종 합성 후 미리보기 갱신
+      // 3) QR 포함 최종 합성
       $("#compose-status").textContent = "QR을 넣어 최종 합성 중…";
       const finalImage = await Compose.compose(selectedUrls, state.frame, published.url);
       await PhotoShare.saveLocal(finalImage, published.id);
@@ -337,17 +329,15 @@
       $("#compose-preview").src = finalImage;
 
       $("#compose-status").textContent = published.remote
-        ? "합성이 완료되었습니다. QR 또는 문자로 사진을 받으세요."
-        : "합성이 완료되었습니다. QR/문자는 촬영 기기에서 열립니다.";
+        ? "합성이 완료되었습니다. QR을 스캔해 사진을 받으세요."
+        : "합성 완료. 네트워크 업로드 실패 — 이 기기에서만 QR이 동작합니다.";
       $("#btn-compose-next").disabled = false;
-      if ($("#btn-sms")) $("#btn-sms").disabled = false;
     } catch (err) {
       console.error(err);
       if (state.compositeDataUrl) {
         $("#compose-preview").src = state.compositeDataUrl;
-        $("#compose-status").textContent = "미리보기는 준비됨 (QR 일부 실패 가능)";
+        $("#compose-status").textContent = "미리보기는 준비됨 (QR 생성 실패 가능)";
         $("#btn-compose-next").disabled = false;
-        if ($("#btn-sms") && state.downloadUrl) $("#btn-sms").disabled = false;
       } else {
         $("#compose-status").textContent = "합성 실패: " + (err.message || err);
         alert("합성에 실패했습니다.");
@@ -497,8 +487,6 @@
     $("#btn-download").addEventListener("click", () => {
       if (state.compositeDataUrl) PhotoShare.triggerDownload(state.compositeDataUrl);
     });
-    if ($("#btn-sms")) $("#btn-sms").addEventListener("click", sendSms);
-    if ($("#btn-sms-print")) $("#btn-sms-print").addEventListener("click", sendSms);
     $("#btn-home").addEventListener("click", resetToStart);
 
     if (navigator.wakeLock) {
