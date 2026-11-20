@@ -5,7 +5,13 @@
   const NEED_SELECT = 4;
   const COUNTDOWN_FROM = 5;
   const RESULT_SHOW_MS = 2000;
-  const CUSTOM_FRAMES_KEY = "goyak-custom-frames";
+  const EVENT_FRAMES = [
+    { id: "frame1", type: "custom", name: "화학구조", src: "frames/frame1.png" },
+    { id: "frame2", type: "custom", name: "랩실환영", src: "frames/frame2.png" },
+    { id: "frame3", type: "custom", name: "약리학", src: "frames/frame3.png" },
+    { id: "frame4", type: "custom", name: "호랑이", src: "frames/frame4.png" },
+    { id: "frame5", type: "custom", name: "클로버", src: "frames/frame5.png" },
+  ];
 
   const state = {
     printQty: 1,
@@ -53,28 +59,9 @@
     return true;
   }
 
-  // —— Frames ——
-  function defaultFrames() {
-    return [
-      { id: "white", type: "white", name: "파스텔" },
-      { id: "black", type: "black", name: "버건디" },
-    ];
-  }
-
-  function loadCustomFrames() {
-    try {
-      return JSON.parse(localStorage.getItem(CUSTOM_FRAMES_KEY) || "[]");
-    } catch {
-      return [];
-    }
-  }
-
-  function saveCustomFrames(list) {
-    localStorage.setItem(CUSTOM_FRAMES_KEY, JSON.stringify(list));
-  }
-
+  // —— Frames (행사 고정 5종) ——
   function refreshFrames() {
-    state.frames = [...defaultFrames(), ...loadCustomFrames()];
+    state.frames = EVENT_FRAMES.slice();
     renderFrameGrid();
   }
 
@@ -83,8 +70,7 @@
     const keep = el.id === "select-chrome" ? " select-chrome" : "";
     el.className = "frame-chrome" + keep;
     el.style.backgroundImage = "";
-    // 가이드 레이아웃은 테마 배경으로 처리, 커스텀만 오버레이
-    if (frame.type === "custom" && frame.src) {
+    if (frame.src) {
       el.classList.add("custom-frame");
       el.style.backgroundImage = `url(${frame.src})`;
     }
@@ -96,10 +82,8 @@
     state.frames.forEach((frame) => {
       const card = document.createElement("button");
       card.type = "button";
-      card.className = `frame-card ${frame.type}`;
-      if (frame.type === "custom" && frame.src) {
-        card.style.backgroundImage = `url(${frame.src})`;
-      }
+      card.className = "frame-card custom";
+      card.style.backgroundImage = `url(${frame.src})`;
       if (state.frame && state.frame.id === frame.id) card.classList.add("selected");
       card.innerHTML = `<span>${frame.name}</span>`;
       card.addEventListener("click", () => selectFrame(frame));
@@ -107,41 +91,18 @@
     });
   }
 
-  function applyFrameTheme(root, frame) {
-    if (!root || !frame) return;
-    root.classList.toggle("theme-black", frame.type === "black");
-    root.classList.toggle("theme-white", frame.type === "white");
-    root.classList.toggle("theme-custom", frame.type === "custom");
-  }
-
   function selectFrame(frame) {
     state.frame = frame;
     renderFrameGrid();
     applyChrome($("#preview-chrome"), frame);
     applyChrome($("#select-chrome"), frame);
-    applyFrameTheme($("#guide-frame"), frame);
-    applyFrameTheme($("#select-frame-preview"), frame);
+    const roots = [$("#guide-frame"), $("#select-frame-preview")];
+    roots.forEach((root) => {
+      if (!root) return;
+      root.classList.add("theme-custom");
+      root.classList.remove("theme-black", "theme-white");
+    });
     $("#btn-frame-next").disabled = false;
-  }
-
-  function handleFrameUpload(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const custom = loadCustomFrames();
-      const item = {
-        id: `custom-${Date.now()}`,
-        type: "custom",
-        name: file.name.replace(/\.[^.]+$/, "").slice(0, 12) || "행사용",
-        src: reader.result,
-      };
-      custom.push(item);
-      while (custom.length > 6) custom.shift();
-      saveCustomFrames(custom);
-      refreshFrames();
-      selectFrame(item);
-    };
-    reader.readAsDataURL(file);
   }
 
   // —— Capture ——
@@ -208,7 +169,6 @@
     state.selected = [];
     renderThumbs();
     updateSelectSlots();
-    applyFrameTheme($("#select-frame-preview"), state.frame);
     applyChrome($("#select-chrome"), state.frame);
     Camera.stop();
     showScreen("select");
@@ -457,11 +417,6 @@
           goFrame();
         }
       });
-    });
-
-    $("#frame-upload").addEventListener("change", (e) => {
-      handleFrameUpload(e.target.files && e.target.files[0]);
-      e.target.value = "";
     });
 
     $("#btn-frame-next").addEventListener("click", () => {

@@ -1,9 +1,9 @@
-/** 웹캠 제어 — 저장 비율 = 100:148 (인쇄 규격과 동일) */
+/** 웹캠 — 프레임 슬롯 비율(466×668)에 맞춰 크롭 저장 */
 const Camera = (() => {
   let stream = null;
-  const SLOT_W = 510;
-  const SLOT_H = 755; // 100:148
-  const ASPECT = 100 / 148;
+  const SLOT_W = 466;
+  const SLOT_H = 668;
+  const ASPECT = SLOT_W / SLOT_H;
   const OUT_W = SLOT_W * 2;
   const OUT_H = SLOT_H * 2;
 
@@ -46,7 +46,6 @@ const Camera = (() => {
     stream = null;
   }
 
-  /** 미리보기·저장 모두 100:148 중앙 크롭 (늘림 없음) */
   function capture(videoEl, canvasEl, { mirror = true } = {}) {
     const vw = videoEl.videoWidth;
     const vh = videoEl.videoHeight;

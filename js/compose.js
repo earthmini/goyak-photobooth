@@ -1,34 +1,26 @@
 /**
- * 인쇄 규격 100 × 148 mm @ 300dpi
- * 캔버스 1181 × 1748 (비율 100:148)
- * 사진 칸 4개 · 각 510 × 755 (동일 비율 100:148)
- * 하단 문구 CAPTION 1181 × 100 (y=1648)
+ * 프레임 원본 1080×1920 기준 합성
+ * 인쇄는 100×148mm (CSS에서 맞춤)
+ * 슬롯은 투명 PNG 프레임 기준
  */
 const Compose = (() => {
-  const W = 1181;
-  const H = 1748;
-  const SLOT_W = 510;
-  const SLOT_H = 755; // 510 * 148 / 100
-  const CAPTION_H = 100;
-  const CAPTION_Y = H - CAPTION_H; // 1648
-
-  const SIDE = 55;
-  const GAP_X = W - SIDE * 2 - SLOT_W * 2; // 51
-  const TOP = 48;
-  const GAP_Y = 42;
-  const X2 = SIDE + SLOT_W + GAP_X;
-  const Y2 = TOP + SLOT_H + GAP_Y;
+  const W = 1080;
+  const H = 1920;
+  const SLOT_W = 466;
+  const SLOT_H = 668;
 
   const SLOTS = [
-    { x: SIDE, y: TOP, w: SLOT_W, h: SLOT_H },
-    { x: X2, y: TOP, w: SLOT_W, h: SLOT_H },
-    { x: SIDE, y: Y2, w: SLOT_W, h: SLOT_H },
-    { x: X2, y: Y2, w: SLOT_W, h: SLOT_H },
+    { x: 64, y: 78, w: SLOT_W, h: SLOT_H },
+    { x: 550, y: 78, w: SLOT_W, h: SLOT_H },
+    { x: 64, y: 754, w: SLOT_W, h: SLOT_H },
+    { x: 550, y: 754, w: SLOT_W, h: SLOT_H },
   ];
 
-  const QR_SIZE = 76;
-  const QR_X = W - 30 - QR_SIZE;
-  const QR_Y = CAPTION_Y + Math.floor((CAPTION_H - QR_SIZE) / 2);
+  const CAPTION_Y = 1480;
+  const CAPTION_H = H - CAPTION_Y;
+  const QR_SIZE = 88;
+  const QR_X = W - 36 - QR_SIZE;
+  const QR_Y = H - 36 - QR_SIZE;
 
   function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -73,26 +65,6 @@ const Compose = (() => {
       sy = (img.height - sh) / 2;
     }
     ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-  }
-
-  function drawBuiltinFrame(ctx, type) {
-    const color = type === "black" ? "#5C2230" : "#F6E9EF";
-    const textColor = type === "black" ? "#F2D5DE" : "#7A2F3F";
-
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    const textX = 40;
-    const textCY = CAPTION_Y + CAPTION_H / 2;
-    ctx.font = '700 38px "Outfit", "Noto Sans KR", sans-serif';
-    ctx.fillText("고약네컷", textX, textCY - 12);
-    ctx.font = '500 17px "Noto Sans KR", sans-serif';
-    ctx.globalAlpha = 0.85;
-    ctx.fillText("제5회 고약인의 밤", textX, textCY + 16);
-    ctx.globalAlpha = 1;
   }
 
   async function makeQRDataUrl(text, size = 160) {
@@ -143,32 +115,26 @@ const Compose = (() => {
     canvas.height = H;
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = frame.type === "black" ? "#5C2230" : "#F6E9EF";
-    if (frame.type === "custom") ctx.fillStyle = "#111111";
+    ctx.fillStyle = "#111111";
     ctx.fillRect(0, 0, W, H);
 
     const photos = await Promise.all(photoDataUrls.map(loadImage));
+    const frameImg = frame && frame.src ? await loadImage(frame.src) : null;
+    const asOverlay = frameImg ? imageHasAlpha(frameImg) : false;
 
-    let customImg = null;
-    let customAsOverlay = false;
-    if (frame.type === "custom" && frame.src) {
-      customImg = await loadImage(frame.src);
-      customAsOverlay = imageHasAlpha(customImg);
-      if (!customAsOverlay) ctx.drawImage(customImg, 0, 0, W, H);
-    } else {
-      drawBuiltinFrame(ctx, frame.type);
+    if (frameImg && !asOverlay) {
+      ctx.drawImage(frameImg, 0, 0, W, H);
     }
 
     SLOTS.forEach((slot, i) => {
       if (photos[i]) drawCover(ctx, photos[i], slot.x, slot.y, slot.w, slot.h);
     });
 
-    if (frame.type === "custom" && customImg && customAsOverlay) {
-      ctx.drawImage(customImg, 0, 0, W, H);
+    if (frameImg && asOverlay) {
+      ctx.drawImage(frameImg, 0, 0, W, H);
     }
 
     await drawQR(ctx, downloadUrl);
-
     return canvas.toDataURL("image/jpeg", 0.92);
   }
 

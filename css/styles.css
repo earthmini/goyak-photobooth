@@ -314,7 +314,7 @@ body {
 .live-frame {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 100 / 148;
+  aspect-ratio: 1080 / 1920;
   background: #111;
   border-radius: 12px;
   overflow: hidden;
@@ -403,6 +403,24 @@ body {
 
 .frame-chrome.custom-frame {
   background-color: transparent;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 5;
+}
+
+.guide-frame.theme-custom {
+  background: #111;
+}
+
+.guide-frame.theme-custom .guide-safe,
+.guide-frame.theme-custom .guide-slot {
+  /* 프레임 이미지가 슬롯을 보여 주므로 가이드 선은 약하게 */
+  opacity: 0.35;
+}
+
+.frame-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
 }
 
 .frame-picker {
@@ -557,7 +575,7 @@ body {
 
 .thumb {
   position: relative;
-  aspect-ratio: 100 / 148;
+  aspect-ratio: 1080 / 1920;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -599,13 +617,9 @@ body {
 /* —— Compose / Print —— */
 #compose-preview,
 #print-preview {
-  width: min(42vh, 100%);
-  aspect-ratio: 2 / 3;
-  object-fit: contain;
+  aspect-ratio: 1080 / 1920 !important;
+  width: min(48vh, 100%);
   background: #111;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--line);
 }
 
 .compose-layout,
@@ -802,7 +816,7 @@ body {
 
 #compose-preview,
 #print-preview {
-  aspect-ratio: 100 / 148;
+  aspect-ratio: 1080 / 1920;
 }
 
 /* —— Viewer —— */
@@ -844,7 +858,7 @@ body {
 .guide-frame {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 100 / 148;
+  aspect-ratio: 1080 / 1920;
   background: #F6E9EF;
   border-radius: 10px;
   overflow: hidden;
@@ -857,10 +871,10 @@ body {
 
 .guide-safe {
   position: absolute;
-  top: calc(100% * 40 / 1748);
-  left: calc(100% * 30 / 1181);
-  right: calc(100% * 30 / 1181);
-  bottom: calc(100% * 35 / 1748);
+  top: calc(100% * 40 / 1920);
+  left: calc(100% * 30 / 1080);
+  right: calc(100% * 30 / 1080);
+  bottom: calc(100% * 200 / 1920);
   border: 1px dashed rgba(220, 60, 60, 0.45);
   pointer-events: none;
   z-index: 1;
@@ -869,8 +883,8 @@ body {
 /* 슬롯 510×755 @ (55,48) (616,48) (55,845) (616,845) */
 .guide-slot {
   position: absolute !important;
-  width: calc(100% * 510 / 1181);
-  height: calc(100% * 755 / 1748);
+  width: calc(100% * 466 / 1080);
+  height: calc(100% * 668 / 1920);
   background: #1a1a1a;
   border: 1px solid rgba(160, 100, 200, 0.45);
   display: flex;
@@ -884,13 +898,13 @@ body {
 }
 
 .guide-slot[data-n="1"],
-.guide-slot[data-slot="0"] { left: calc(100% * 55 / 1181); top: calc(100% * 48 / 1748); }
+.guide-slot[data-slot="0"] { left: calc(100% * 64 / 1080); top: calc(100% * 78 / 1920); }
 .guide-slot[data-n="2"],
-.guide-slot[data-slot="1"] { left: calc(100% * 616 / 1181); top: calc(100% * 48 / 1748); }
+.guide-slot[data-slot="1"] { left: calc(100% * 550 / 1080); top: calc(100% * 78 / 1920); }
 .guide-slot[data-n="3"],
-.guide-slot[data-slot="2"] { left: calc(100% * 55 / 1181); top: calc(100% * 845 / 1748); }
+.guide-slot[data-slot="2"] { left: calc(100% * 64 / 1080); top: calc(100% * 754 / 1920); }
 .guide-slot[data-n="4"],
-.guide-slot[data-slot="3"] { left: calc(100% * 616 / 1181); top: calc(100% * 845 / 1748); }
+.guide-slot[data-slot="3"] { left: calc(100% * 550 / 1080); top: calc(100% * 754 / 1920); }
 
 .guide-slot > span {
   color: rgba(255,255,255,0.45);
@@ -917,8 +931,8 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% * 1648 / 1748);
-  height: calc(100% * 100 / 1748);
+  top: calc(100% * 1480 / 1920);
+  height: calc(100% * 440 / 1920);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -950,8 +964,8 @@ body {
 
 /* 카메라 뷰포트 = 사진 칸 비율 466:690 */
 .camera-viewport {
-  width: min(92vw, 72vh * 100 / 148) !important;
-  aspect-ratio: 100 / 148 !important;
+  width: min(92vw, 72vh * 466 / 668) !important;
+  aspect-ratio: 1080 / 1920 !important;
 }
 
 .capture-result {
@@ -969,7 +983,7 @@ body {
 
 #compose-preview,
 #print-preview {
-  aspect-ratio: 100 / 148 !important;
+  aspect-ratio: 1080 / 1920 !important;
   width: min(48vh, 100%);
   background: #111;
 }
@@ -979,7 +993,7 @@ body {
   display: block !important;
   position: relative !important;
   width: min(42vh, 100%);
-  aspect-ratio: 100 / 148;
+  aspect-ratio: 1080 / 1920;
   padding: 0 !important;
   margin: 0 auto;
   grid-template-columns: none !important;
