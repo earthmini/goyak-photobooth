@@ -56,8 +56,8 @@
   // —— Frames ——
   function defaultFrames() {
     return [
-      { id: "white", type: "white", name: "흰색" },
-      { id: "black", type: "black", name: "검은색" },
+      { id: "white", type: "white", name: "파스텔" },
+      { id: "black", type: "black", name: "버건디" },
     ];
   }
 

@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F6E9EF" />
   <title>고약네컷 사진 저장</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      background: #0c1018;
-      color: #f4f0e6;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 0%, rgba(232, 180, 196, 0.55), transparent 55%),
+        radial-gradient(ellipse 55% 45% at 100% 20%, rgba(217, 198, 224, 0.4), transparent 50%),
+        #F6E9EF;
+      color: #3A2430;
       font-family: "Noto Sans KR", sans-serif;
       display: flex;
       flex-direction: column;
@@ -20,16 +24,30 @@
       padding: 24px;
       gap: 20px;
     }
-    h1 { margin: 0; font-size: 18px; color: #e8d59a; }
+    h1 {
+      margin: 0;
+      font-family: "Outfit", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #5C2230;
+      letter-spacing: -0.02em;
+    }
     #photo {
       max-width: min(100%, 420px);
       max-height: 65vh;
-      border-radius: 12px;
-      border: 1px solid rgba(232, 213, 154, 0.25);
-      background: #111;
+      border-radius: 16px;
+      border: 1px solid rgba(122, 47, 63, 0.12);
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(122, 47, 63, 0.12);
       display: none;
     }
-    #msg { color: #9aa3b5; text-align: center; line-height: 1.5; font-size: 14px; white-space: pre-line; }
+    #msg {
+      color: #8A6B78;
+      text-align: center;
+      line-height: 1.5;
+      font-size: 14px;
+      white-space: pre-line;
+    }
     .btn {
       display: block;
       width: min(280px, 100%);
@@ -39,8 +57,9 @@
       padding: 16px 24px;
       font-size: 16px;
       font-weight: 700;
-      background: linear-gradient(135deg, #e8d59a, #c9a227);
-      color: #1a1408;
+      background: linear-gradient(135deg, #9A4558, #5C2230);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(122, 47, 63, 0.25);
     }
   </style>
 </head>
@@ -84,16 +103,11 @@
         msg.textContent = "사진을 길게 누르거나\n아래 버튼으로 저장하세요";
         btnSave.hidden = false;
         btnSave.href = href;
-        if (href.startsWith("data:")) {
-          btnSave.setAttribute("download", "goyak-necut.jpg");
-        } else {
-          btnSave.setAttribute("download", "goyak-necut.jpg");
+        btnSave.setAttribute("download", "goyak-necut.jpg");
+        if (!href.startsWith("data:")) {
           btnSave.target = "_blank";
           btnSave.rel = "noopener";
-        }
-
-        // data URL이면 자동 저장 시도
-        if (href.startsWith("data:")) {
+        } else {
           setTimeout(() => {
             const a = document.createElement("a");
             a.href = href;

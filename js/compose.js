@@ -70,8 +70,9 @@ const Compose = (() => {
   }
 
   function drawBuiltinFrame(ctx, type) {
-    const color = type === "black" ? "#0a0a0a" : "#f7f4ec";
-    const textColor = type === "black" ? "#f0e6c8" : "#2a2418";
+    // 파스텔 블러시 / 버건디 프레임
+    const color = type === "black" ? "#5C2230" : "#F6E9EF";
+    const textColor = type === "black" ? "#F2D5DE" : "#7A2F3F";
 
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, W, H);
@@ -81,9 +82,9 @@ const Compose = (() => {
     ctx.textBaseline = "middle";
     const textX = 40;
     const textCY = CAPTION_Y + CAPTION_H / 2;
-    ctx.font = '600 40px "Cormorant Garamond", "Noto Sans KR", serif';
+    ctx.font = '700 40px "Outfit", "Noto Sans KR", sans-serif';
     ctx.fillText("고약네컷", textX, textCY - 12);
-    ctx.font = '400 18px "Noto Sans KR", sans-serif';
+    ctx.font = '500 18px "Noto Sans KR", sans-serif';
     ctx.globalAlpha = 0.85;
     ctx.fillText("제5회 고약인의 밤", textX, textCY + 18);
     ctx.globalAlpha = 1;
@@ -138,7 +139,7 @@ const Compose = (() => {
     canvas.height = H;
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = frame.type === "black" ? "#0a0a0a" : "#f7f4ec";
+    ctx.fillStyle = frame.type === "black" ? "#5C2230" : "#F6E9EF";
     if (frame.type === "custom") ctx.fillStyle = "#111111";
     ctx.fillRect(0, 0, W, H);
 
