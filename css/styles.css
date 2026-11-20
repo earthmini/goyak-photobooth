@@ -817,15 +817,8 @@ body {
 }
 
 #compose-preview,
-#print-preview,
-.select-frame-preview {
-  aspect-ratio: 2 / 3;
-}
-
-.select-frame-preview {
-  /* 슬롯 영역: 상단~footer 전 비율에 맞춤 */
-  padding: 2.6% 5% 23% 5%;
-  gap: 2.1%;
+#print-preview {
+  aspect-ratio: 1080 / 1620;
 }
 
 /* —— Viewer —— */
