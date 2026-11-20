@@ -1,27 +1,33 @@
 /**
- * 프린터 가이드 규격
- * 캔버스 1080×1620
- * 사진 칸 466×690 @ (63,77) (552,77) (63,789) (552,789)
- * 하단 문구 CAPTION 1080×104 (y=1516)
+ * 인쇄 규격 100 × 148 mm @ 300dpi
+ * 캔버스 1181 × 1748 (비율 100:148)
+ * 사진 칸 4개 · 각 510 × 755 (동일 비율 100:148)
+ * 하단 문구 CAPTION 1181 × 100 (y=1648)
  */
 const Compose = (() => {
-  const W = 1080;
-  const H = 1620;
-  const SLOT_W = 466;
-  const SLOT_H = 690;
-  const CAPTION_H = 104;
-  const CAPTION_Y = H - CAPTION_H; // 1516
+  const W = 1181;
+  const H = 1748;
+  const SLOT_W = 510;
+  const SLOT_H = 755; // 510 * 148 / 100
+  const CAPTION_H = 100;
+  const CAPTION_Y = H - CAPTION_H; // 1648
+
+  const SIDE = 55;
+  const GAP_X = W - SIDE * 2 - SLOT_W * 2; // 51
+  const TOP = 48;
+  const GAP_Y = 42;
+  const X2 = SIDE + SLOT_W + GAP_X;
+  const Y2 = TOP + SLOT_H + GAP_Y;
 
   const SLOTS = [
-    { x: 63, y: 77, w: SLOT_W, h: SLOT_H },
-    { x: 552, y: 77, w: SLOT_W, h: SLOT_H },
-    { x: 63, y: 789, w: SLOT_W, h: SLOT_H },
-    { x: 552, y: 789, w: SLOT_W, h: SLOT_H },
+    { x: SIDE, y: TOP, w: SLOT_W, h: SLOT_H },
+    { x: X2, y: TOP, w: SLOT_W, h: SLOT_H },
+    { x: SIDE, y: Y2, w: SLOT_W, h: SLOT_H },
+    { x: X2, y: Y2, w: SLOT_W, h: SLOT_H },
   ];
 
-  // 하단 캡션(104px) 안에 들어가는 QR
-  const QR_SIZE = 80;
-  const QR_X = W - 27 - QR_SIZE;
+  const QR_SIZE = 76;
+  const QR_X = W - 30 - QR_SIZE;
   const QR_Y = CAPTION_Y + Math.floor((CAPTION_H - QR_SIZE) / 2);
 
   function loadImage(src) {
@@ -70,7 +76,6 @@ const Compose = (() => {
   }
 
   function drawBuiltinFrame(ctx, type) {
-    // 파스텔 블러시 / 버건디 프레임
     const color = type === "black" ? "#5C2230" : "#F6E9EF";
     const textColor = type === "black" ? "#F2D5DE" : "#7A2F3F";
 
@@ -82,16 +87,15 @@ const Compose = (() => {
     ctx.textBaseline = "middle";
     const textX = 40;
     const textCY = CAPTION_Y + CAPTION_H / 2;
-    ctx.font = '700 40px "Outfit", "Noto Sans KR", sans-serif';
+    ctx.font = '700 38px "Outfit", "Noto Sans KR", sans-serif';
     ctx.fillText("고약네컷", textX, textCY - 12);
-    ctx.font = '500 18px "Noto Sans KR", sans-serif';
+    ctx.font = '500 17px "Noto Sans KR", sans-serif';
     ctx.globalAlpha = 0.85;
-    ctx.fillText("제5회 고약인의 밤", textX, textCY + 18);
+    ctx.fillText("제5회 고약인의 밤", textX, textCY + 16);
     ctx.globalAlpha = 1;
   }
 
   async function makeQRDataUrl(text, size = 160) {
-    // qrcodejs (davidshimjs)
     if (typeof QRCode !== "undefined") {
       const host = document.createElement("div");
       host.style.cssText = "position:fixed;left:-9999px;top:0;";

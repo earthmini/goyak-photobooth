@@ -1,10 +1,9 @@
-/** 웹캠 제어 — 저장 비율 = 사진 칸 466×690 (늘림 없이 크롭) */
+/** 웹캠 제어 — 저장 비율 = 100:148 (인쇄 규격과 동일) */
 const Camera = (() => {
   let stream = null;
-  // 슬롯과 동일한 비율이어야 촬영 후 옆으로 늘어나지 않음
-  const SLOT_W = 466;
-  const SLOT_H = 690;
-  const ASPECT = SLOT_W / SLOT_H; // ≈ 0.6754 (2:3)
+  const SLOT_W = 510;
+  const SLOT_H = 755; // 100:148
+  const ASPECT = 100 / 148;
   const OUT_W = SLOT_W * 2;
   const OUT_H = SLOT_H * 2;
 
@@ -47,10 +46,7 @@ const Camera = (() => {
     stream = null;
   }
 
-  /**
-   * 미리보기·저장 모두 466:690 비율로 중앙 크롭.
-   * mirror=true면 거울 모드로 저장.
-   */
+  /** 미리보기·저장 모두 100:148 중앙 크롭 (늘림 없음) */
   function capture(videoEl, canvasEl, { mirror = true } = {}) {
     const vw = videoEl.videoWidth;
     const vh = videoEl.videoHeight;
@@ -62,13 +58,11 @@ const Camera = (() => {
     let sh;
     const videoAspect = vw / vh;
     if (videoAspect > ASPECT) {
-      // 영상이 더 넓음 → 좌우 크롭 (세로 맞춤)
       sh = vh;
       sw = vh * ASPECT;
       sx = (vw - sw) / 2;
       sy = 0;
     } else {
-      // 영상이 더 높음 → 상하 크롭 (가로 맞춤)
       sw = vw;
       sh = vw / ASPECT;
       sx = 0;

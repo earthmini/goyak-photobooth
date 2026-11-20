@@ -314,7 +314,7 @@ body {
 .live-frame {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 1080 / 1620;
+  aspect-ratio: 100 / 148;
   background: #111;
   border-radius: 12px;
   overflow: hidden;
@@ -557,7 +557,7 @@ body {
 
 .thumb {
   position: relative;
-  aspect-ratio: 466 / 690;
+  aspect-ratio: 100 / 148;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -667,7 +667,7 @@ body {
 
 @media print {
   @page {
-    size: 4in 6in;
+    size: 100mm 148mm;
     margin: 0;
   }
 
@@ -676,8 +676,8 @@ body {
     background: #fff !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 4in;
-    height: 6in;
+    width: 100mm;
+    height: 148mm;
     overflow: hidden;
   }
 
@@ -687,16 +687,16 @@ body {
 
   #print-area {
     display: block !important;
-    width: 4in;
-    height: 6in;
+    width: 100mm;
+    height: 148mm;
     margin: 0;
     padding: 0;
   }
 
   #print-image {
     display: block;
-    width: 4in;
-    height: 6in;
+    width: 100mm;
+    height: 148mm;
     object-fit: fill;
   }
 }
@@ -802,7 +802,7 @@ body {
 
 #compose-preview,
 #print-preview {
-  aspect-ratio: 1080 / 1620;
+  aspect-ratio: 100 / 148;
 }
 
 /* —— Viewer —— */
@@ -839,12 +839,13 @@ body {
 }
 
 
-/* —— Guide frame 1080×1620 (첨부 가이드 좌표) —— */
+
+/* —— Guide frame 100×148 (1181×1748 @300dpi) —— */
 .guide-frame {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 1080 / 1620;
-  background: #f7f4ec;
+  aspect-ratio: 100 / 148;
+  background: #F6E9EF;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -856,22 +857,22 @@ body {
 
 .guide-safe {
   position: absolute;
-  top: calc(100% * 46 / 1620);
-  left: calc(100% * 27 / 1080);
-  right: calc(100% * 27 / 1080);
-  bottom: calc(100% * 37 / 1620);
-  border: 1px dashed rgba(220, 60, 60, 0.55);
+  top: calc(100% * 40 / 1748);
+  left: calc(100% * 30 / 1181);
+  right: calc(100% * 30 / 1181);
+  bottom: calc(100% * 35 / 1748);
+  border: 1px dashed rgba(220, 60, 60, 0.45);
   pointer-events: none;
   z-index: 1;
 }
 
-/* 슬롯: (63,77) (552,77) (63,789) (552,789) / 466×690 */
+/* 슬롯 510×755 @ (55,48) (616,48) (55,845) (616,845) */
 .guide-slot {
   position: absolute !important;
-  width: calc(100% * 466 / 1080);
-  height: calc(100% * 690 / 1620);
+  width: calc(100% * 510 / 1181);
+  height: calc(100% * 755 / 1748);
   background: #1a1a1a;
-  border: 1px solid rgba(160, 100, 200, 0.55);
+  border: 1px solid rgba(160, 100, 200, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -883,13 +884,13 @@ body {
 }
 
 .guide-slot[data-n="1"],
-.guide-slot[data-slot="0"] { left: calc(100% * 63 / 1080); top: calc(100% * 77 / 1620); }
+.guide-slot[data-slot="0"] { left: calc(100% * 55 / 1181); top: calc(100% * 48 / 1748); }
 .guide-slot[data-n="2"],
-.guide-slot[data-slot="1"] { left: calc(100% * 552 / 1080); top: calc(100% * 77 / 1620); }
+.guide-slot[data-slot="1"] { left: calc(100% * 616 / 1181); top: calc(100% * 48 / 1748); }
 .guide-slot[data-n="3"],
-.guide-slot[data-slot="2"] { left: calc(100% * 63 / 1080); top: calc(100% * 789 / 1620); }
+.guide-slot[data-slot="2"] { left: calc(100% * 55 / 1181); top: calc(100% * 845 / 1748); }
 .guide-slot[data-n="4"],
-.guide-slot[data-slot="3"] { left: calc(100% * 552 / 1080); top: calc(100% * 789 / 1620); }
+.guide-slot[data-slot="3"] { left: calc(100% * 616 / 1181); top: calc(100% * 845 / 1748); }
 
 .guide-slot > span {
   color: rgba(255,255,255,0.45);
@@ -911,19 +912,19 @@ body {
 .guide-slot.has-photo > span { display: none; }
 .guide-slot.has-photo img { display: block; }
 
-/* 하단 문구 CAPTION 1080×104 @ y=1516 */
+/* 하단 문구 CAPTION y=1648 h=100 */
 .guide-caption {
   position: absolute;
   left: 0;
   right: 0;
-  top: calc(100% * 1516 / 1620);
-  height: calc(100% * 104 / 1620);
+  top: calc(100% * 1648 / 1748);
+  height: calc(100% * 100 / 1748);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0 4% 0 4%;
   z-index: 2;
-  border-top: 1px dashed rgba(201, 162, 39, 0.45);
+  border-top: 1px dashed rgba(122, 47, 63, 0.25);
   box-sizing: border-box;
 }
 
@@ -949,8 +950,8 @@ body {
 
 /* 카메라 뷰포트 = 사진 칸 비율 466:690 */
 .camera-viewport {
-  width: min(92vw, 72vh * 466 / 690) !important;
-  aspect-ratio: 466 / 690 !important;
+  width: min(92vw, 72vh * 100 / 148) !important;
+  aspect-ratio: 100 / 148 !important;
 }
 
 .capture-result {
@@ -968,7 +969,7 @@ body {
 
 #compose-preview,
 #print-preview {
-  aspect-ratio: 1080 / 1620 !important;
+  aspect-ratio: 100 / 148 !important;
   width: min(48vh, 100%);
   background: #111;
 }
@@ -978,7 +979,7 @@ body {
   display: block !important;
   position: relative !important;
   width: min(42vh, 100%);
-  aspect-ratio: 1080 / 1620;
+  aspect-ratio: 100 / 148;
   padding: 0 !important;
   margin: 0 auto;
   grid-template-columns: none !important;

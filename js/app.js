@@ -350,7 +350,7 @@
     showScreen("print");
     $("#print-preview").src = state.compositeDataUrl;
     $("#print-image").src = state.compositeDataUrl;
-    $("#print-status").textContent = `출력 매수: ${state.printQty}장 · CP1500 / 4x6 인화지`;
+    $("#print-status").textContent = `출력 매수: ${state.printQty}장 · CP1500 / 100×148mm`;
     await renderQrTo($("#qr-canvas"), state.downloadUrl);
   }
 
@@ -371,7 +371,7 @@
   async function doPrint() {
     const btn = $("#btn-print");
     btn.disabled = true;
-    $("#print-status").textContent = "인쇄 중… 프린트 대화상자에서 CP1500 · 4x6을 선택하세요.";
+    $("#print-status").textContent = "인쇄 중… 프린트 대화상자에서 CP1500 · 100×148mm을 선택하세요.";
 
     for (let i = 0; i < state.printQty; i++) {
       $("#print-status").textContent = `인쇄 중… (${i + 1}/${state.printQty})`;
