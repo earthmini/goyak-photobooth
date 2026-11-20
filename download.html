@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>고약네컷 사진 저장</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0c1018;
+      color: #f4f0e6;
+      font-family: "Noto Sans KR", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #e8d59a;
+    }
+    #photo {
+      max-width: min(100%, 420px);
+      max-height: 62vh;
+      width: auto;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(232, 213, 154, 0.25);
+      background: #111;
+      display: none;
+    }
+    #msg {
+      color: #9aa3b5;
+      text-align: center;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .actions { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }
+    a.btn, button.btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      border: none;
+      border-radius: 999px;
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #e8d59a, #c9a227);
+      color: #1a1408;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #e8d59a;
+      border: 1px solid rgba(232, 213, 154, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>고약네컷</h1>
+  <p id="msg">사진을 불러오는 중…</p>
+  <img id="photo" alt="고약네컷 사진" />
+  <div class="actions">
+    <a class="btn btn-primary" id="btn-save" download="goyak-necut.jpg" hidden>사진 저장</a>
+    <button type="button" class="btn btn-secondary" id="btn-sms" hidden>문자로 링크 보내기</button>
+  </div>
+
+  <script src="js/share.js"></script>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const imgParam = params.get("img");
+      const id = params.get("v");
+      const msg = document.getElementById("msg");
+      const photo = document.getElementById("photo");
+      const btnSave = document.getElementById("btn-save");
+      const btnSms = document.getElementById("btn-sms");
+
+      let dataUrl = null;
+      let shareUrl = location.href;
+
+      try {
+        if (imgParam) {
+          // 원격 이미지 URL → 표시 + 저장
+          const remote = decodeURIComponent(imgParam);
+          shareUrl = remote;
+          photo.crossOrigin = "anonymous";
+          photo.src = remote;
+          await new Promise((res, rej) => {
+            photo.onload = res;
+            photo.onerror = rej;
+          });
+          // canvas로 dataURL 만들어 저장 보장
+          const c = document.createElement("canvas");
+          c.width = photo.naturalWidth;
+          c.height = photo.naturalHeight;
+          c.getContext("2d").drawImage(photo, 0, 0);
+          try {
+            dataUrl = c.toDataURL("image/jpeg", 0.95);
+          } catch (_) {
+            dataUrl = remote;
+          }
+        } else if (id && typeof PhotoShare !== "undefined") {
+          const row = await PhotoShare.loadLocal(id);
+          if (!row || !row.dataUrl) throw new Error("not found");
+          dataUrl = row.dataUrl;
+          photo.src = dataUrl;
+          shareUrl = location.href;
+        } else {
+          throw new Error("no photo");
+        }
+
+        photo.style.display = "block";
+        msg.textContent = "아래에서 사진을 저장하세요";
+        btnSave.hidden = false;
+        btnSave.href = dataUrl;
+        if (dataUrl.startsWith("data:")) {
+          btnSave.setAttribute("download", "goyak-necut.jpg");
+        } else {
+          btnSave.removeAttribute("download");
+          btnSave.target = "_blank";
+          btnSave.href = shareUrl;
+        }
+
+        // 자동 저장 시도 (모바일에서 막힐 수 있음)
+        setTimeout(() => {
+          try {
+            const a = document.createElement("a");
+            a.href = dataUrl;
+            a.download = "goyak-necut.jpg";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } catch (_) {}
+        }, 400);
+
+        btnSms.hidden = false;
+        btnSms.onclick = () => {
+          const body = encodeURIComponent("고약네컷 사진 다운로드: " + shareUrl);
+          location.href = "sms:&body=" + body;
+        };
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "사진을 찾을 수 없습니다.\n촬영한 기기에서 다시 QR을 생성해 주세요.";
+      }
+    })();
+  </script>
+</body>
+</html>

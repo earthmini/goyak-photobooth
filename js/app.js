@@ -39,21 +39,27 @@
     if (overlay) overlay.textContent = text;
   }
 
-  // —— Viewer (?v=id) ——
-  async function maybeOpenViewer() {
-    const id = new URLSearchParams(location.search).get("v");
-    if (!id) return false;
-    const row = await PhotoShare.loadLocal(id);
-    const viewer = $("#viewer");
-    if (!row || !row.dataUrl) {
-      alert("사진을 찾을 수 없거나 만료되었습니다.");
-      return true;
-    }
-    $("#viewer-image").src = row.dataUrl;
-    $("#viewer-download").href = row.dataUrl;
-    viewer.hidden = false;
-    $("#app").style.display = "none";
+  // —— 옛 ?v= 링크는 사진 전용 download.html 로 보냄 ——
+  function redirectLegacyViewer() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get("v");
+    const img = params.get("img");
+    if (!id && !img) return false;
+    const target = PhotoShare.downloadPageUrl({
+      id: id || undefined,
+      imgUrl: img || undefined,
+    });
+    location.replace(target);
     return true;
+  }
+
+  function sendSms() {
+    if (!state.downloadUrl) {
+      alert("다운로드 링크가 아직 준비되지 않았습니다.");
+      return;
+    }
+    const phone = ($("#sms-phone") && $("#sms-phone").value) || "";
+    PhotoShare.openSmsWithLink(state.downloadUrl, phone);
   }
 
   // —— Frames ——
@@ -110,17 +116,20 @@
     });
   }
 
+  function applyFrameTheme(root, frame) {
+    if (!root || !frame) return;
+    root.classList.toggle("theme-black", frame.type === "black");
+    root.classList.toggle("theme-white", frame.type === "white");
+    root.classList.toggle("theme-custom", frame.type === "custom");
+  }
+
   function selectFrame(frame) {
     state.frame = frame;
     renderFrameGrid();
     applyChrome($("#preview-chrome"), frame);
     applyChrome($("#select-chrome"), frame);
-    const guide = $("#guide-frame");
-    if (guide) {
-      guide.classList.toggle("theme-black", frame.type === "black");
-      guide.classList.toggle("theme-white", frame.type === "white");
-      guide.classList.toggle("theme-custom", frame.type === "custom");
-    }
+    applyFrameTheme($("#guide-frame"), frame);
+    applyFrameTheme($("#select-frame-preview"), frame);
     $("#btn-frame-next").disabled = false;
   }
 
@@ -208,6 +217,8 @@
     state.selected = [];
     renderThumbs();
     updateSelectSlots();
+    applyFrameTheme($("#select-frame-preview"), state.frame);
+    applyChrome($("#select-chrome"), state.frame);
     Camera.stop();
     showScreen("select");
   }
@@ -326,15 +337,17 @@
       $("#compose-preview").src = finalImage;
 
       $("#compose-status").textContent = published.remote
-        ? "합성이 완료되었습니다. QR을 스캔해 다운로드하세요."
-        : "합성이 완료되었습니다. QR은 촬영 기기에서 열립니다.";
+        ? "합성이 완료되었습니다. QR 또는 문자로 사진을 받으세요."
+        : "합성이 완료되었습니다. QR/문자는 촬영 기기에서 열립니다.";
       $("#btn-compose-next").disabled = false;
+      if ($("#btn-sms")) $("#btn-sms").disabled = false;
     } catch (err) {
       console.error(err);
       if (state.compositeDataUrl) {
         $("#compose-preview").src = state.compositeDataUrl;
         $("#compose-status").textContent = "미리보기는 준비됨 (QR 일부 실패 가능)";
         $("#btn-compose-next").disabled = false;
+        if ($("#btn-sms") && state.downloadUrl) $("#btn-sms").disabled = false;
       } else {
         $("#compose-status").textContent = "합성 실패: " + (err.message || err);
         alert("합성에 실패했습니다.");
@@ -431,12 +444,7 @@
   }
 
   async function init() {
-    if (await maybeOpenViewer()) {
-      $("#viewer-close").addEventListener("click", () => {
-        location.href = location.pathname;
-      });
-      return;
-    }
+    if (redirectLegacyViewer()) return;
 
     initQty();
     refreshFrames();
@@ -489,6 +497,8 @@
     $("#btn-download").addEventListener("click", () => {
       if (state.compositeDataUrl) PhotoShare.triggerDownload(state.compositeDataUrl);
     });
+    if ($("#btn-sms")) $("#btn-sms").addEventListener("click", sendSms);
+    if ($("#btn-sms-print")) $("#btn-sms-print").addEventListener("click", sendSms);
     $("#btn-home").addEventListener("click", resetToStart);
 
     if (navigator.wakeLock) {

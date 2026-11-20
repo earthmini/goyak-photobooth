@@ -305,11 +305,10 @@ body {
   min-height: 0;
 }
 
-.live-frame,
-.select-frame-preview {
+.live-frame {
   position: relative;
   width: min(42vh, 100%);
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1080 / 1620;
   background: #111;
   border-radius: 12px;
   overflow: hidden;
@@ -528,54 +527,10 @@ body {
   z-index: 4;
 }
 
-/* —— Select —— */
-.select-frame-preview {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 2.5%;
-  padding: 8% 7% 14% 7%;
-}
-
-.select-frame-preview .slot {
-  position: relative;
-  background: #1a1a1a;
-  overflow: hidden;
-  border-radius: 2px;
-}
-
-.select-frame-preview .slot span {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 32px;
-  color: rgba(255, 255, 255, 0.35);
-  z-index: 1;
-}
-
-.select-frame-preview .slot img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: none;
-  z-index: 2;
-}
-
-.select-frame-preview .slot.has-photo span {
-  display: none;
-}
-
-.select-frame-preview .slot.has-photo img {
-  display: block;
-}
-
+/* —— Select (가이드 절대좌표만 사용, grid 금지) —— */
 .select-chrome {
   z-index: 3;
+  pointer-events: none;
 }
 
 .thumb-panel {
@@ -596,7 +551,7 @@ body {
 
 .thumb {
   position: relative;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 466 / 690;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -834,6 +789,29 @@ body {
   gap: 20px;
 }
 
+.sms-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(280px, 100%);
+}
+
+.sms-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  font-size: 16px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.sms-input::placeholder {
+  color: var(--muted);
+}
+
 .compose-layout {
   grid-template-columns: 1.1fr 0.9fr;
 }
@@ -912,7 +890,7 @@ body {
 
 /* 슬롯: (63,77) (552,77) (63,789) (552,789) / 466×690 */
 .guide-slot {
-  position: absolute;
+  position: absolute !important;
   width: calc(100% * 466 / 1080);
   height: calc(100% * 690 / 1620);
   background: #1a1a1a;
@@ -923,6 +901,8 @@ body {
   overflow: hidden;
   z-index: 2;
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .guide-slot[data-n="1"],
@@ -1017,11 +997,15 @@ body {
 
 /* select preview no longer uses old grid padding */
 .select-frame-preview.guide-frame {
-  display: block;
-  padding: 0;
-  grid-template-columns: unset;
-  grid-template-rows: unset;
-  gap: unset;
+  display: block !important;
+  position: relative !important;
+  width: min(42vh, 100%);
+  aspect-ratio: 1080 / 1620;
+  padding: 0 !important;
+  margin: 0 auto;
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  gap: 0 !important;
 }
 
 .frame-layout {

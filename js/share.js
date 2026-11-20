@@ -43,12 +43,14 @@ const PhotoShare = (() => {
     return row;
   }
 
-  function localViewUrl(id) {
-    const url = new URL(window.location.href);
-    url.search = "";
-    url.hash = "";
-    url.searchParams.set("v", id);
-    return url.toString();
+  /** 사진만 받는 전용 페이지 URL (부스 웹사이트 아님) */
+  function downloadPageUrl({ id, imgUrl } = {}) {
+    const base = new URL("download.html", window.location.href);
+    base.search = "";
+    base.hash = "";
+    if (imgUrl) base.searchParams.set("img", imgUrl);
+    else if (id) base.searchParams.set("v", id);
+    return base.toString();
   }
 
   function dataUrlToBlob(dataUrl) {
@@ -93,22 +95,27 @@ const PhotoShare = (() => {
     return text;
   }
 
-  /** 로컬 URL 즉시 반환, 원격 업로드는 최대 4초만 시도 */
+  /**
+   * QR용 URL: 항상 download.html (사진만)
+   * - 원격 업로드 성공 시 download.html?img=원격주소
+   * - 실패 시 download.html?v=로컬ID
+   */
   async function publishForQr(draftDataUrl) {
     const id = uid();
     await saveLocal(draftDataUrl, id);
-    let url = localViewUrl(id);
-    let remote = false;
 
+    let remoteUrl = null;
     try {
-      url = await withTimeout(uploadTemp(draftDataUrl), 4000);
-      remote = true;
+      remoteUrl = await withTimeout(uploadTemp(draftDataUrl), 8000);
     } catch (e) {
-      console.warn("공개 업로드 생략 → 로컬 URL", e);
-      url = localViewUrl(id);
+      console.warn("공개 업로드 생략", e);
     }
 
-    return { id, url, remote };
+    const url = remoteUrl
+      ? downloadPageUrl({ imgUrl: remoteUrl })
+      : downloadPageUrl({ id });
+
+    return { id, url, remote: Boolean(remoteUrl), remoteUrl };
   }
 
   function triggerDownload(dataUrl, filename = "goyak-necut.jpg") {
@@ -120,5 +127,23 @@ const PhotoShare = (() => {
     a.remove();
   }
 
-  return { publishForQr, saveLocal, loadLocal, localViewUrl, triggerDownload, uid };
+  /** iOS/Android 문자 앱에 다운로드 링크 넣기 */
+  function openSmsWithLink(downloadUrl, phone = "") {
+    const body = encodeURIComponent("고약네컷 사진 받기: " + downloadUrl);
+    const phonePart = phone.replace(/[^0-9+]/g, "");
+    const href = phonePart
+      ? `sms:${phonePart}&body=${body}`
+      : `sms:&body=${body}`;
+    window.location.href = href;
+  }
+
+  return {
+    publishForQr,
+    saveLocal,
+    loadLocal,
+    downloadPageUrl,
+    triggerDownload,
+    openSmsWithLink,
+    uid,
+  };
 })();
